@@ -3,6 +3,7 @@ import Head from "next/head";
 import React, { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { ResponseData, Data } from "@common/types";
 import { filterItemsFromShops, mapDataToItems } from "../common/functions";
+import ItemImage from "../components/ItemImage";
 
 export default function Home() {
   const [data, setData] = useState<Data | null>(null);
@@ -76,18 +77,16 @@ export default function Home() {
                 <tr key={index}>
                   <td>{item.amount}</td>
                   <td>
-                    <img
-                      alt={item.name}
-                      src={`http://www.ragnawave.com.br/dist/db/items/${item.nameid}.png`}
-                    />
+                    <ItemImage id={item.nameid} alt={item.name} />
                     {item.name}
                     <ul>
                       {item.cards &&
                         item.cards.map((card, i) => (
                           <li key={i}>
-                            <img
+                            <ItemImage
+                              id={card.card_id}
                               alt={card.card_name}
-                              src={`http://www.ragnawave.com.br/dist/db/items/${card.card_id}.png`}
+                              size={18}
                             />
                             {card.card_name}
                           </li>
