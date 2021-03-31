@@ -1,7 +1,7 @@
 import axios from "axios";
 import Head from "next/head";
 import React, { FormEvent, useEffect, useRef, useState } from "react";
-import { Item, ResponseData, Shop, Interval, Filters } from "../@types/api";
+import { Item, ResponseData, Shop, Interval, Filters } from "@common/types";
 
 interface Result {
   shopId: number;
