@@ -1,26 +1,7 @@
 import axios from "axios";
 import Head from "next/head";
 import React, { FormEvent, useEffect, useRef, useState } from "react";
-import { Item, ResponseData, Shop, Interval, Filters } from "@common/types";
-
-interface Result {
-  shopId: number;
-  vendorId: number;
-  vendorName: string;
-  shopName: string;
-  location: string;
-  item: Item;
-}
-
-export interface Data {
-  page: number;
-  maxPages: number;
-  perPage: number;
-  total: number;
-  interval: Interval;
-  filters: Filters;
-  results: Result[];
-}
+import { ResponseData, Shop, SearchResult, Data } from "@common/types";
 
 export default function Home() {
   const [data, setData] = useState<Data | null>(null);
@@ -118,7 +99,7 @@ function filterItemsFromShops(shops: Shop[], param: string): Shop[] {
   }));
 }
 
-function mapDataToItems(shops: Shop[]): Result[] {
+function mapDataToItems(shops: Shop[]): SearchResult[] {
   return shops
     .map((shop) => {
       return shop.items.map((item) => ({

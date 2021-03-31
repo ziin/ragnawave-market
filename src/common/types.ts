@@ -1,3 +1,4 @@
+// API Types
 export interface ResponseData {
   page: number;
   maxPages: number;
@@ -36,4 +37,24 @@ export interface Item {
 export interface Cards {
   card_id: number;
   card_name: string;
+}
+
+// Search Types
+export interface SearchResult {
+  shopId: number;
+  vendorId: number;
+  vendorName: string;
+  shopName: string;
+  location: string;
+  item: Item;
+}
+
+export interface Data {
+  page: number;
+  maxPages: number;
+  perPage: number;
+  total: number;
+  interval: Interval;
+  filters: Filters;
+  results: SearchResult[];
 }
