@@ -1,6 +1,6 @@
 import axios from "axios";
 import Head from "next/head";
-import React, { FormEvent, useEffect, useRef, useState } from "react";
+import React, { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { ResponseData, Data } from "@common/types";
 import { filterItemsFromShops, mapDataToItems } from "../common/functions";
 
@@ -13,6 +13,12 @@ export default function Home() {
     const value = inputRef.current?.value || "";
     setParam(value.toLowerCase());
   }
+
+  // Check if results has some bonuses
+  const hasBonus = useMemo(
+    () => data?.results.some((result) => result.item.options.length > 0),
+    [data]
+  );
 
   // request when param change
   useEffect(() => {
@@ -58,32 +64,46 @@ export default function Home() {
         <table>
           <thead>
             <tr>
+              <th>Qnt</th>
               <th>Item</th>
+              {hasBonus && <th>Bônus</th>}
               <th>Preço</th>
-              <th>Quantidade</th>
-              <th>Localicação</th>
-              <th>Vendedor</th>
-              <th>Bônus</th>
             </tr>
           </thead>
           <tbody>
             {data &&
-              data.results.map(({ item, location, vendorName }, index) => (
+              data.results.map(({ item }, index) => (
                 <tr key={index}>
+                  <td>{item.amount}</td>
                   <td>
                     <img
                       alt={item.name}
                       src={`http://www.ragnawave.com.br/dist/db/items/${item.nameid}.png`}
                     />
                     {item.name}
+                    <ul>
+                      {item.cards &&
+                        item.cards.map((card, i) => (
+                          <li key={i}>
+                            <img
+                              alt={card.card_name}
+                              src={`http://www.ragnawave.com.br/dist/db/items/${card.card_id}.png`}
+                            />
+                            {card.card_name}
+                          </li>
+                        ))}
+                    </ul>
                   </td>
-                  <td>{item.price}</td>
-                  <td>{item.amount}</td>
-                  <td>{location}</td>
-                  <td>{vendorName}</td>
-                  <td>
-                    {item.options.reduce((acc, cur) => `${acc} | ${cur}`, "")}
-                  </td>
+                  {hasBonus && (
+                    <td>
+                      <ul>
+                        {item.options.map((bonus, i) => (
+                          <li key={i}>{bonus}</li>
+                        ))}
+                      </ul>
+                    </td>
+                  )}
+                  <td>{item.price}z</td>
                 </tr>
               ))}
           </tbody>
