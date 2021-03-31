@@ -21,3 +21,7 @@ export function mapDataToItems(shops: Shop[]): SearchResult[] {
     })
     .flat();
 }
+
+export function formatPrice(price: number): string {
+  return Intl.NumberFormat().format(price).concat("z");
+}

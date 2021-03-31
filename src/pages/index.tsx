@@ -2,7 +2,11 @@ import axios from "axios";
 import Head from "next/head";
 import React, { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { ResponseData, Data } from "@common/types";
-import { filterItemsFromShops, mapDataToItems } from "../common/functions";
+import {
+  filterItemsFromShops,
+  formatPrice,
+  mapDataToItems,
+} from "../common/functions";
 import ItemImage from "../components/ItemImage";
 
 export default function Home() {
@@ -102,7 +106,7 @@ export default function Home() {
                       </ul>
                     </td>
                   )}
-                  <td>{item.price}z</td>
+                  <td>{formatPrice(item.price)}</td>
                 </tr>
               ))}
           </tbody>
