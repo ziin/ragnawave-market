@@ -23,12 +23,12 @@ export interface Data {
 }
 
 export default function Home() {
-  const [data, setData] = useState<Data>(null);
+  const [data, setData] = useState<Data | null>(null);
   const [param, setParam] = useState("");
-  const inputRef = useRef<HTMLInputElement>();
+  const inputRef = useRef<HTMLInputElement>(null);
   async function handleSearch(e: FormEvent) {
     e.preventDefault();
-    const value = inputRef.current.value;
+    const value = inputRef.current?.value || "";
     setParam(value.toLowerCase());
   }
 
@@ -58,7 +58,7 @@ export default function Home() {
   }, [param]);
 
   // componentDidMount
-  useEffect(() => inputRef.current.focus(), []);
+  useEffect(() => inputRef.current?.focus(), []);
 
   return (
     <div>
