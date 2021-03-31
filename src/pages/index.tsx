@@ -1,7 +1,8 @@
 import axios from "axios";
 import Head from "next/head";
 import React, { FormEvent, useEffect, useRef, useState } from "react";
-import { ResponseData, Shop, SearchResult, Data } from "@common/types";
+import { ResponseData, Data } from "@common/types";
+import { filterItemsFromShops, mapDataToItems } from "../common/functions";
 
 export default function Home() {
   const [data, setData] = useState<Data | null>(null);
@@ -90,26 +91,4 @@ export default function Home() {
       </main>
     </div>
   );
-}
-
-function filterItemsFromShops(shops: Shop[], param: string): Shop[] {
-  return shops.map((shop) => ({
-    ...shop,
-    items: shop.items.filter((item) => item.name.toLowerCase().includes(param)),
-  }));
-}
-
-function mapDataToItems(shops: Shop[]): SearchResult[] {
-  return shops
-    .map((shop) => {
-      return shop.items.map((item) => ({
-        shopId: shop.id,
-        vendorId: shop.char_id,
-        vendorName: shop.char_name,
-        location: shop.mapname,
-        shopName: shop.shop_name,
-        item: item,
-      }));
-    })
-    .flat();
 }
