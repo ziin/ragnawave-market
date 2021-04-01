@@ -1,14 +1,9 @@
 import React, { useEffect, useMemo, useState } from "react";
 import Head from "next/head";
-import axios from "axios";
 import { useForm } from "react-hook-form";
 
-import { ResponseData, SearchData } from "@common/types";
-import {
-  filterItemsFromVendorShop,
-  formatPrice,
-  mapShopItemsToSearchResult,
-} from "@common/functions";
+import { SearchData } from "@common/types";
+import { formatPrice, getItems } from "@common/functions";
 import ItemImage from "@components/ItemImage";
 
 interface SearchQuery {
@@ -25,7 +20,7 @@ export default function Home() {
   const { register, handleSubmit } = useForm<SearchQuery>();
 
   function onSubmit(data: SearchQuery) {
-    setQuery(data);
+    setQuery({ searchTerm: data.searchTerm.trim() });
   }
 
   // Check if results has some bonuses
@@ -36,30 +31,13 @@ export default function Home() {
 
   // Request when query.name change
   useEffect(() => {
-    async function doRequestFilterByNameAndFormat() {
-      const { data } = await axios.get<ResponseData>(
-        `https://ws.ragnawave.com.br/mercado/list?rowsPerPage=100&page=1&name=${query.searchTerm}`
-      );
-
-      const shopItemsWithSearchTerm = filterItemsFromVendorShop(
-        data.rows,
-        query.searchTerm
-      );
-
-      const formatted: SearchData = {
-        filters: data.filters,
-        interval: data.interval,
-        maxPages: data.maxPages,
-        page: data.page,
-        perPage: data.rowsPerPage,
-        total: data.totalRows,
-        results: mapShopItemsToSearchResult(shopItemsWithSearchTerm),
-      };
-      setData(formatted);
+    async function doRequest() {
+      const items = await getItems(query.searchTerm);
+      setData(items || null);
     }
 
     if (query.searchTerm.length > 0) {
-      doRequestFilterByNameAndFormat();
+      doRequest();
     }
   }, [query.searchTerm]);
 
