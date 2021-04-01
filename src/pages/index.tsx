@@ -1,22 +1,31 @@
-import axios from "axios";
+import React, { useEffect, useMemo, useState } from "react";
 import Head from "next/head";
-import React, { FormEvent, useEffect, useMemo, useRef, useState } from "react";
-import { ResponseData, Data } from "@common/types";
+import axios from "axios";
+import { useForm } from "react-hook-form";
+
+import { ResponseData, SearchData } from "@common/types";
 import {
-  filterItemsFromShops,
+  filterItemsFromVendorShop,
   formatPrice,
-  mapDataToItems,
-} from "../common/functions";
-import ItemImage from "../components/ItemImage";
+  mapShopItemsToSearchResult,
+} from "@common/functions";
+import ItemImage from "@components/ItemImage";
+
+interface SearchQuery {
+  searchTerm: string;
+}
+
+const defaultSearchQuery: SearchQuery = {
+  searchTerm: "",
+};
 
 export default function Home() {
-  const [data, setData] = useState<Data | null>(null);
-  const [param, setParam] = useState("");
-  const inputRef = useRef<HTMLInputElement>(null);
-  async function handleSearch(e: FormEvent) {
-    e.preventDefault();
-    const value = inputRef.current?.value || "";
-    setParam(value.toLowerCase());
+  const [data, setData] = useState<SearchData | null>(null);
+  const [query, setQuery] = useState<SearchQuery>(defaultSearchQuery);
+  const { register, handleSubmit } = useForm<SearchQuery>();
+
+  function onSubmit(data: SearchQuery) {
+    setQuery(data);
   }
 
   // Check if results has some bonuses
@@ -25,33 +34,34 @@ export default function Home() {
     [data]
   );
 
-  // request when param change
+  // Request when query.name change
   useEffect(() => {
-    async function request() {
+    async function doRequestFilterByNameAndFormat() {
       const { data } = await axios.get<ResponseData>(
-        `https://ws.ragnawave.com.br/mercado/list?rowsPerPage=100&page=1&name=${param}`
+        `https://ws.ragnawave.com.br/mercado/list?rowsPerPage=100&page=1&name=${query.searchTerm}`
       );
-      const filtered = filterItemsFromShops(data.rows, param);
-      const formatted = {
+
+      const shopItemsWithSearchTerm = filterItemsFromVendorShop(
+        data.rows,
+        query.searchTerm
+      );
+
+      const formatted: SearchData = {
         filters: data.filters,
         interval: data.interval,
         maxPages: data.maxPages,
         page: data.page,
         perPage: data.rowsPerPage,
         total: data.totalRows,
-        results: mapDataToItems(filtered),
+        results: mapShopItemsToSearchResult(shopItemsWithSearchTerm),
       };
-      console.log(formatted);
       setData(formatted);
     }
 
-    if (param.length > 0) {
-      request();
+    if (query.searchTerm.length > 0) {
+      doRequestFilterByNameAndFormat();
     }
-  }, [param]);
-
-  // componentDidMount
-  useEffect(() => inputRef.current?.focus(), []);
+  }, [query.searchTerm]);
 
   return (
     <div>
@@ -61,11 +71,16 @@ export default function Home() {
       </Head>
 
       <main>
-        <form onSubmit={handleSearch}>
-          <input ref={inputRef} />
-          <button type="submit">Buscar</button>
-        </form>
+        <form onSubmit={handleSubmit(onSubmit)}>
+          <input
+            type="text"
+            placeholder="searchTerm"
+            name="searchTerm"
+            ref={register}
+          />
 
+          <input type="submit" value="Pesquisar" />
+        </form>
         <table>
           <thead>
             <tr>

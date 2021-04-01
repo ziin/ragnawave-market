@@ -1,13 +1,15 @@
 import { SearchResult, Shop } from "./types";
 
-export function filterItemsFromShops(shops: Shop[], param: string): Shop[] {
+export function filterItemsFromVendorShop(shops: Shop[], name: string): Shop[] {
   return shops.map((shop) => ({
     ...shop,
-    items: shop.items.filter((item) => item.name.toLowerCase().includes(param)),
+    items: shop.items.filter((item) =>
+      item.name.toLowerCase().includes(name.toLowerCase())
+    ),
   }));
 }
 
-export function mapDataToItems(shops: Shop[]): SearchResult[] {
+export function mapShopItemsToSearchResult(shops: Shop[]): SearchResult[] {
   return shops
     .map((shop) => {
       return shop.items.map((item) => ({

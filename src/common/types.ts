@@ -49,7 +49,7 @@ export interface SearchResult {
   item: Item;
 }
 
-export interface Data {
+export interface SearchData {
   page: number;
   maxPages: number;
   perPage: number;
