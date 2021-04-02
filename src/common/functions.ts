@@ -39,7 +39,22 @@ export function mapShopItemsToSearchResult(shops: Shop[]): SearchResult[] {
 }
 
 export function formatPrice(price: number): string {
-  return Intl.NumberFormat().format(price).concat("z");
+  return Intl.NumberFormat().format(price);
+}
+
+export function getPriceColor(price: number) {
+  switch (true) {
+    case price < 100000:
+      return "#FF18FF";
+    case price < 1000000:
+      return "#4948e8";
+    case price < 10000000:
+      return "#186A18";
+    case price < 100000000:
+      return "#FF0000";
+    default:
+      return "#FF18FF";
+  }
 }
 
 export async function getItems(

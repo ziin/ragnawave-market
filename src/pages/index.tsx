@@ -1,124 +1,231 @@
-import React, { useEffect, useMemo, useState } from "react";
 import Head from "next/head";
-import { useForm } from "react-hook-form";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 
 import { SearchData } from "@common/types";
-import { formatPrice, getItems } from "@common/functions";
-import ItemImage from "@components/ItemImage";
-import { filterValues } from "../common/filters";
-import Checkbox from "../components/Checkbox";
-
-interface Filters {
-  atq: boolean;
-  matq: boolean;
-  precisao: boolean;
-  hp: boolean;
-  sp: boolean;
-  spRegen: boolean;
-  hpRegen: boolean;
-  cura: boolean;
-  conjuracaoDelay: boolean;
-  conjuracaoTime: boolean;
-  danoDistancia: boolean;
-  def: boolean;
-  mdef: boolean;
-  critico: boolean;
-  aspd: boolean;
-  indestrutivel: boolean;
-}
-
-enum Races {
-  humanoide = "humanoide",
-  planta = "planta",
-  mortovivo = "mortovivo",
-  anjo = "anjo",
-  demonio = "demonio",
-  amorfo = "amorfo",
-  inseto = "inseto",
-  dragao = "dragao",
-  peixe = "peixe",
-  bruto = "bruto",
-}
-
-enum Elements {
-  agua = "agua",
-  fogo = "fogo",
-  vento = "vento",
-  terra = "terra",
-  fantasma = "fantasma",
-  sombrio = "sombrio",
-  neutro = "neutro",
-  maldito = "maldito",
-  veneno = "veneno",
-}
-
-interface SelectFilters {
-  danoFisicoRaca: Races | "nenhum";
-  danoFisicoElemento: Races | "nenhum";
-  reducaoDanoRaca: Races | "nenhum";
-  reducaoDanoElemento: Elements | "nenhum";
-  ignorarDefRaca: Races | "nenhum";
-  ignorarDefMRaca: Races | "nenhum";
-}
-
-const defaultSelectFilters: SelectFilters = {
-  danoFisicoRaca: "nenhum",
-  danoFisicoElemento: "nenhum",
-  reducaoDanoRaca: "nenhum",
-  reducaoDanoElemento: "nenhum",
-  ignorarDefRaca: "nenhum",
-  ignorarDefMRaca: "nenhum",
+import { getItems } from "@common/functions";
+import {
+  ToggleFilter,
+  ToggleType,
+  SelectFilter,
+  SelectType,
+  getFilterTermForSelectedType,
+  PropertyType,
+} from "@common/filters";
+import Filter from "@components/Filter";
+import Search from "@components/Search";
+import Results from "@components/Results";
+import { Box, Flex, Heading, Stack } from "@chakra-ui/layout";
+import Welcome from "../components/Welcome";
+import ItemNotFound from "../components/ItemNotFound";
+const filterValues = {
+  atq: "ATQ +",
+  matq: "MATQ +",
+  precisao: "Precisão +",
+  hp: "Máx. HP",
+  sp: "Máx. SP",
+  spRegen: "Recuperação de SP",
+  hpRegen: "Recuperação de HP",
+  cura: "Aumenta a Cura de Habilidades",
+  conjuracaoDelay: "Reduz o tempo do atraso",
+  conjuracaoTime: "Reduz o tempo de lançamento",
+  danoDistancia: "Aumenta o ATK a distância",
+  def: "DEF +",
+  mdef: "DEFM +",
+  critico: "Taxa de Ataques Críticos",
+  aspd: "Velocidade de Ataque",
+  indestrutivel: "Indestrutível em batalha",
+  // atributos
+  for: "FOR +",
+  vit: "VIT +",
+  agi: "AGI +",
+  int: "INT +",
+  des: "DES +",
+  sor: "SOR +",
 };
 
-interface FormFields {
-  searchTerm: string;
-}
+const defaultToggleFilters: ToggleFilter[] = [
+  { key: ToggleType.ATQ, label: "ATQ", filter: "ATQ +", active: false },
+  {
+    key: ToggleType.PRECISAO,
+    label: "Precisão",
+    filter: "Precisão +",
+    active: false,
+  },
+  {
+    key: ToggleType.MATQ,
+    label: "MATQ",
+    filter: "MATQ +",
+    active: false,
+  },
+  {
+    key: ToggleType.HP,
+    label: "HP",
+    filter: "Máx. HP",
+    active: false,
+  },
+  {
+    key: ToggleType.SP,
+    label: "SP",
+    filter: "Máx. SP",
+    active: false,
+  },
+  {
+    key: ToggleType.HP_REGEN,
+    label: "HP Regen.",
+    filter: "Recuperação de HP",
+    active: false,
+  },
+  {
+    key: ToggleType.SP_REGEN,
+    label: "SP Regen.",
+    filter: "Recuperação de SP",
+    active: false,
+  },
+  {
+    key: ToggleType.CURA,
+    label: "Cura",
+    filter: "Aumenta a Cura de Habilidades",
+    active: false,
+  },
 
-const defaultFilters: Filters = {
-  atq: false,
-  matq: false,
-  precisao: false,
-  hp: false,
-  sp: false,
-  spRegen: false,
-  hpRegen: false,
-  cura: false,
-  conjuracaoDelay: false,
-  conjuracaoTime: false,
-  danoDistancia: false,
-  def: false,
-  mdef: false,
-  critico: false,
-  aspd: false,
-  indestrutivel: false,
-};
+  {
+    key: ToggleType.DEF,
+    label: "DEF",
+    filter: "DEF +",
+    active: false,
+  },
+  {
+    key: ToggleType.MDEF,
+    label: "DEFM",
+    filter: "DEFM +",
+    active: false,
+  },
+  {
+    key: ToggleType.CRIT,
+    label: "Crítico",
+    filter: "Taxa de Ataques Críticos",
+    active: false,
+  },
+  {
+    key: ToggleType.ASPD,
+    label: "Velocidade de Ataque",
+    filter: "Velocidade de Ataque",
+    active: false,
+  },
 
-// const _getKeyValue_ = (key: string) => (obj: Record<string, any>) =>
-//   obj[key];
-// const resolved = Object.keys(filters)
-//   .filter((key) => _getKeyValue_(key)(filters))
-//   .map((key) => filterMap.get(key));
+  {
+    key: ToggleType.FOR,
+    label: "FOR",
+    filter: "FOR +",
+    active: false,
+  },
+  {
+    key: ToggleType.VIT,
+    label: "VIT",
+    filter: "VIT +",
+    active: false,
+  },
+  {
+    key: ToggleType.AGI,
+    label: "AGI",
+    filter: "AGI +",
+    active: false,
+  },
+  {
+    key: ToggleType.INT,
+    label: "INT",
+    filter: "INT +",
+    active: false,
+  },
+  {
+    key: ToggleType.DES,
+    label: "DES",
+    filter: "DES +",
+    active: false,
+  },
+  {
+    key: ToggleType.SOR,
+    label: "SOR",
+    filter: "SOR +",
+    active: false,
+  },
+  {
+    key: ToggleType.CONJ_DELAY,
+    label: "Reduz Pós-Conjuração",
+    filter: "Reduz o tempo do atraso",
+    active: false,
+  },
+  {
+    key: ToggleType.DANO_DIST,
+    label: "Dano a Distância",
+    filter: "Aumenta o ATK a distância",
+    active: false,
+  },
+  {
+    key: ToggleType.CONJ_TIME,
+    label: "Redução de Lançamento",
+    filter: "Reduz o tempo de lançamento",
+    active: false,
+  },
 
-export default function Home() {
+  {
+    key: ToggleType.INDESTRUCT,
+    label: "Indestrutível",
+    filter: "Indestrutível em batalha",
+    active: false,
+  },
+];
+
+const defaultSelectFilters: SelectFilter[] = [
+  {
+    key: SelectType.ATK_RACE,
+    selected: false,
+    value: "",
+  },
+  {
+    key: SelectType.ATK_ELEMENT,
+    selected: false,
+    value: "",
+  },
+];
+
+export default function Template() {
   const [data, setData] = useState<SearchData | null>(null);
   const [dataFiltered, setDataFiltered] = useState<SearchData | null>(null);
   const [searchTerm, setSearchTerm] = useState<string>("");
-  const [filters, setFilters] = useState<Filters>(defaultFilters);
-  const [selects, setSelects] = useState<SelectFilters>(defaultSelectFilters);
-  const { register, handleSubmit } = useForm<FormFields>();
+  const [filters, setFilters] = useState<ToggleFilter[]>(defaultToggleFilters);
+  const [selects, setSelects] = useState<SelectFilter[]>(defaultSelectFilters);
 
-  function onSubmit(data: FormFields) {
-    const { searchTerm } = data;
-    console.log(searchTerm);
-
-    setSearchTerm(searchTerm.trim());
+  function handleSubmit(value: string) {
+    setSearchTerm(value.trim());
   }
 
-  function handleCheckboxFilterChange(key: keyof Filters) {
-    setFilters({ ...filters, [key]: !filters[key] });
+  function handleFilterChange(key: ToggleType) {
+    setFilters(
+      filters.map((filter) =>
+        filter.key === key ? { ...filter, active: !filter.active } : filter
+      )
+    );
   }
-  function handleSelectFilterChange(e: React.ChangeEvent<HTMLSelectElement>) {
-    setSelects({ ...selects, [e.target.name]: e.target.value });
+
+  function handleSelectChange(key: SelectType, value: PropertyType) {
+    const currentSelected = selects.find((select) => select.key === key).value;
+    setSelects(
+      selects.map((select) =>
+        select.key === key
+          ? {
+              key,
+              selected: currentSelected !== value,
+              value: currentSelected === value ? "" : value,
+            }
+          : select
+      )
+    );
+  }
+
+  function handleClearFilters() {
+    setSelects(defaultSelectFilters);
+    setFilters(defaultToggleFilters);
   }
 
   // Check if results has some bonuses
@@ -129,25 +236,28 @@ export default function Home() {
 
   // Filtering
   useEffect(() => {
-    // console.log(filters);
-    // console.log(
-    //   Object.keys(filters)
-    //     .filter((key) => filters[key])
-    //     .map((key) => filterValues[key])
-    // );
-    console.log(selects);
-
     if (data) {
-      console.log("apply filter");
+      const filteredByToggles = data.results.filter((result) => {
+        return filters
+          .filter((filter) => filter.active)
+          .map((filter) => filter.filter)
+          .every((value) =>
+            result.item.options.some((bonus) => bonus.includes(value))
+          );
+      });
 
-      const values = Object.keys(filters)
-        .filter((key) => filters[key])
-        .map((key) => filterValues[key]);
-
-      const filtered = data.results.filter((result) => {
-        return values.every((value) =>
-          result.item.options.some((bonus) => bonus.includes(value))
-        );
+      const filtered = filteredByToggles.filter((result) => {
+        return selects
+          .filter((select) => select.selected)
+          .map((select) =>
+            getFilterTermForSelectedType(
+              select.key,
+              select.value as PropertyType
+            )
+          )
+          .every((value) =>
+            result.item.options.some((bonus) => bonus.includes(value))
+          );
       });
 
       setDataFiltered({
@@ -162,7 +272,6 @@ export default function Home() {
   useEffect(() => {
     async function doRequest() {
       const items = await getItems(searchTerm);
-      console.log("Requesting...");
       setData(items || null);
     }
 
@@ -172,95 +281,37 @@ export default function Home() {
   }, [searchTerm]);
 
   return (
-    <div>
+    <Flex h="full" w="full">
       <Head>
         <title>Ragnawave Market</title>
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
-      <main>
-        <form onSubmit={handleSubmit(onSubmit)}>
-          <input
-            type="text"
-            placeholder="searchTerm"
-            name="searchTerm"
-            ref={register}
-          />
-
-          <input type="submit" value="Pesquisar" />
-        </form>
-        <Checkbox
-          label="ATQ"
-          onClick={() => handleCheckboxFilterChange("atq")}
-          checked={filters.atq}
+      <Flex w={400} minH="100vh" bgColor="blackAlpha.100">
+        <Filter
+          filters={filters}
+          selects={selects}
+          handleFilterChange={handleFilterChange}
+          handleSelectChange={handleSelectChange}
+          clearFilters={handleClearFilters}
         />
+      </Flex>
 
-        <Checkbox
-          label="ASPD"
-          onClick={() => handleCheckboxFilterChange("aspd")}
-          checked={filters.aspd}
-        />
-
-        <select onChange={handleSelectFilterChange} name="danoFisicoRaca">
-          <option value="nenhum">Nenhum</option>
-          <option value="humanoide">Humanóide</option>
-          <option value="planta">Planta</option>
-          <option value="mortovivo">Morto-Vivo</option>
-          <option value="anjo">Anjo</option>
-          <option value="demonio">Demônio</option>
-          <option value="amorfo">Amorfo</option>
-          <option value="inseto">Inseto</option>
-          <option value="dragao">Dragão</option>
-          <option value="peixe">Peixe</option>
-          <option value="bruto">Bruto</option>
-        </select>
-
-        <table>
-          <thead>
-            <tr>
-              <th>Qnt</th>
-              <th>Item</th>
-              {hasBonus && <th>Bônus</th>}
-              <th>Preço</th>
-            </tr>
-          </thead>
-          <tbody>
-            {dataFiltered &&
-              dataFiltered.results.map(({ item }, index) => (
-                <tr key={index}>
-                  <td>{item.amount}</td>
-                  <td>
-                    <ItemImage id={item.nameid} alt={item.name} />
-                    {item.name}
-                    <ul>
-                      {item.cards &&
-                        item.cards.map((card, i) => (
-                          <li key={i}>
-                            <ItemImage
-                              id={card.card_id}
-                              alt={card.card_name}
-                              size={18}
-                            />
-                            {card.card_name}
-                          </li>
-                        ))}
-                    </ul>
-                  </td>
-                  {hasBonus && (
-                    <td>
-                      <ul>
-                        {item.options.map((bonus, i) => (
-                          <li key={i}>{bonus}</li>
-                        ))}
-                      </ul>
-                    </td>
-                  )}
-                  <td>{formatPrice(item.price)}</td>
-                </tr>
-              ))}
-          </tbody>
-        </table>
-      </main>
-    </div>
+      <Box w="full" h="100vh" overflowX="scroll" paddingX="8">
+        <Stack marginY="4" spacing="4">
+          <Heading>Pesquisar</Heading>
+          <Search handleSubmit={handleSubmit} />
+        </Stack>
+        <Box>
+          {!!!dataFiltered ? (
+            <Welcome />
+          ) : !!dataFiltered?.results.length ? (
+            <Results data={dataFiltered} hasBonus={hasBonus} />
+          ) : (
+            <ItemNotFound />
+          )}
+        </Box>
+      </Box>
+    </Flex>
   );
 }
