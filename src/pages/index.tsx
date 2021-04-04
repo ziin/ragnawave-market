@@ -1,5 +1,5 @@
 import Head from "next/head";
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 
 import { SearchData } from "@common/types";
 import { getItems } from "@common/functions";
@@ -15,33 +15,8 @@ import Filter from "@components/Filter";
 import Search from "@components/Search";
 import Results from "@components/Results";
 import { Box, Flex, Heading, Stack } from "@chakra-ui/layout";
-import Welcome from "../components/Welcome";
-import ItemNotFound from "../components/ItemNotFound";
-const filterValues = {
-  atq: "ATQ +",
-  matq: "MATQ +",
-  precisao: "Precisão +",
-  hp: "Máx. HP",
-  sp: "Máx. SP",
-  spRegen: "Recuperação de SP",
-  hpRegen: "Recuperação de HP",
-  cura: "Aumenta a Cura de Habilidades",
-  conjuracaoDelay: "Reduz o tempo do atraso",
-  conjuracaoTime: "Reduz o tempo de lançamento",
-  danoDistancia: "Aumenta o ATK a distância",
-  def: "DEF +",
-  mdef: "DEFM +",
-  critico: "Taxa de Ataques Críticos",
-  aspd: "Velocidade de Ataque",
-  indestrutivel: "Indestrutível em batalha",
-  // atributos
-  for: "FOR +",
-  vit: "VIT +",
-  agi: "AGI +",
-  int: "INT +",
-  des: "DES +",
-  sor: "SOR +",
-};
+import Welcome from "@components/Welcome";
+import ItemNotFound from "@components/ItemNotFound";
 
 const defaultToggleFilters: ToggleFilter[] = [
   { key: ToggleType.ATQ, label: "ATQ", filter: "ATQ +", active: false },
@@ -187,6 +162,26 @@ const defaultSelectFilters: SelectFilter[] = [
     selected: false,
     value: "",
   },
+  {
+    key: SelectType.IGNORE_DEF_RACE,
+    selected: false,
+    value: "",
+  },
+  {
+    key: SelectType.IGNORE_DEFM_RACE,
+    selected: false,
+    value: "",
+  },
+  {
+    key: SelectType.DEF_RACE,
+    selected: false,
+    value: "",
+  },
+  {
+    key: SelectType.DEF_ELEMENT,
+    selected: false,
+    value: "",
+  },
 ];
 
 export default function Template() {
@@ -284,10 +279,10 @@ export default function Template() {
     <Flex h="full" w="full">
       <Head>
         <title>Ragnawave Market</title>
-        <link rel="icon" href="/favicon.ico" />
+        <link rel="icon" href="/logo.png" />
       </Head>
 
-      <Flex w={400} minH="100vh" bgColor="blackAlpha.100">
+      <Flex w={400} h="100vh" bgColor="blackAlpha.100" overflowX="scroll">
         <Filter
           filters={filters}
           selects={selects}

@@ -3,7 +3,6 @@
 // Aumenta Dano Físico em Raças → 10~20%
 // Ignora MDEF em Raças → 10~24%
 // Ignora DEF em Raças → 10~35%
-// Ignora MDEF em Raças → 10~24%
 // Aumenta o Dano Físico em Elementos → 10~20%
 
 export enum ToggleType {
