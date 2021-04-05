@@ -23,6 +23,7 @@ export interface Shop {
   mapname: string;
   items: Item[];
 }
+
 export interface Item {
   nameid: number;
   name: string;

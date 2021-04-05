@@ -74,14 +74,15 @@ export default function Filter({
           onChange={handleSelectChange}
           selected={handleSelectedProperty(SelectType.ATK_RACE)}
           options={[
-            { label: "Morto-Vivo", property: Races.mortovivo },
             { label: "Humanóide", property: Races.humanoide },
-            { label: "Amorfo", property: Races.amorfo },
+            { label: "Morto-Vivo", property: Races.mortovivo },
             { label: "Planta", property: Races.planta },
-            { label: "Demônio", property: Races.demonio },
             { label: "Inseto", property: Races.inseto },
-            { label: "Anjo", property: Races.anjo },
+            { label: "Bruto", property: Races.bruto },
+            { label: "Amorfo", property: Races.amorfo },
             { label: "Peixe", property: Races.peixe },
+            { label: "Demônio", property: Races.demonio },
+            { label: "Anjo", property: Races.anjo },
             { label: "Dragão", property: Races.dragao },
           ]}
         />
@@ -99,14 +100,15 @@ export default function Filter({
           onChange={handleSelectChange}
           selected={handleSelectedProperty(SelectType.IGNORE_DEF_RACE)}
           options={[
-            { label: "Morto-Vivo", property: Races.mortovivo },
             { label: "Humanóide", property: Races.humanoide },
-            { label: "Amorfo", property: Races.amorfo },
+            { label: "Morto-Vivo", property: Races.mortovivo },
             { label: "Planta", property: Races.planta },
-            { label: "Demônio", property: Races.demonio },
             { label: "Inseto", property: Races.inseto },
-            { label: "Anjo", property: Races.anjo },
+            { label: "Bruto", property: Races.bruto },
+            { label: "Amorfo", property: Races.amorfo },
             { label: "Peixe", property: Races.peixe },
+            { label: "Demônio", property: Races.demonio },
+            { label: "Anjo", property: Races.anjo },
             { label: "Dragão", property: Races.dragao },
           ]}
         />
@@ -152,14 +154,15 @@ export default function Filter({
           onChange={handleSelectChange}
           selected={handleSelectedProperty(SelectType.IGNORE_DEFM_RACE)}
           options={[
-            { label: "Morto-Vivo", property: Races.mortovivo },
             { label: "Humanóide", property: Races.humanoide },
-            { label: "Amorfo", property: Races.amorfo },
+            { label: "Morto-Vivo", property: Races.mortovivo },
             { label: "Planta", property: Races.planta },
-            { label: "Demônio", property: Races.demonio },
             { label: "Inseto", property: Races.inseto },
-            { label: "Anjo", property: Races.anjo },
+            { label: "Bruto", property: Races.bruto },
+            { label: "Amorfo", property: Races.amorfo },
             { label: "Peixe", property: Races.peixe },
+            { label: "Demônio", property: Races.demonio },
+            { label: "Anjo", property: Races.anjo },
             { label: "Dragão", property: Races.dragao },
           ]}
         />
@@ -178,14 +181,15 @@ export default function Filter({
           onChange={handleSelectChange}
           selected={handleSelectedProperty(SelectType.DEF_RACE)}
           options={[
-            { label: "Morto-Vivo", property: Races.mortovivo },
             { label: "Humanóide", property: Races.humanoide },
-            { label: "Amorfo", property: Races.amorfo },
+            { label: "Morto-Vivo", property: Races.mortovivo },
             { label: "Planta", property: Races.planta },
-            { label: "Demônio", property: Races.demonio },
             { label: "Inseto", property: Races.inseto },
-            { label: "Anjo", property: Races.anjo },
+            { label: "Bruto", property: Races.bruto },
+            { label: "Amorfo", property: Races.amorfo },
             { label: "Peixe", property: Races.peixe },
+            { label: "Demônio", property: Races.demonio },
+            { label: "Anjo", property: Races.anjo },
             { label: "Dragão", property: Races.dragao },
           ]}
         />
