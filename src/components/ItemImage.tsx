@@ -15,6 +15,7 @@ export default function ItemImage({ id, alt, size = 24, isCard }: Props) {
         src={`http://www.ragnawave.com.br/dist/db/items/${
           isCard ? 4297 : id
         }.png`}
+        layout="fixed"
         width={size}
         height={size}
         alt={alt}
