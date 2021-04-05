@@ -255,10 +255,14 @@ export default function Template() {
           );
       });
 
+      const sortedByPrice = filtered.sort(
+        (resultA, resultB) => resultA.item.price - resultB.item.price
+      );
+
       setDataFiltered({
         ...data,
-        total: filtered.length,
-        results: filtered,
+        total: sortedByPrice.length,
+        results: sortedByPrice,
       });
     }
   }, [data, filters, selects]);
