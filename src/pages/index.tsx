@@ -237,7 +237,7 @@ export default function Template() {
           .filter((filter) => filter.active)
           .map((filter) => filter.filter)
           .every((value) =>
-            result.item.options.some((bonus) => bonus.includes(value))
+            result.item.options.some((bonus) => bonus.startsWith(value))
           );
       });
 
