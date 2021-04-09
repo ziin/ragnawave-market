@@ -1,316 +1,239 @@
 import Head from "next/head";
-import React, { useEffect, useMemo, useState } from "react";
-
-import { SearchData } from "@common/types";
-import { getItems } from "@common/functions";
-import {
-  ToggleFilter,
-  ToggleType,
-  SelectFilter,
-  SelectType,
-  getFilterTermForSelectedType,
-  PropertyType,
-} from "@common/filters";
-import Filter from "@components/Filter";
+import React, { useEffect, useMemo, useRef, useState } from "react";
+import throttle from "lodash.throttle";
+import { SearchData, Upon } from "@common/types";
+import { Flex } from "@chakra-ui/layout";
 import Search from "@components/Search";
-import Results from "@components/Results";
-import { Box, Flex, Heading, Stack } from "@chakra-ui/layout";
-import Welcome from "@components/Welcome";
-import ItemNotFound from "@components/ItemNotFound";
+import { getItems, getFiltersFromDataResult } from "../common/functions";
+import Filters from "../components/Filter";
+import Results from "../components/Results";
 
-const defaultToggleFilters: ToggleFilter[] = [
-  { key: ToggleType.ATQ, label: "ATQ", filter: "ATQ +", active: false },
-  {
-    key: ToggleType.PRECISAO,
-    label: "Precisão",
-    filter: "Precisão +",
-    active: false,
-  },
-  {
-    key: ToggleType.MATQ,
-    label: "MATQ",
-    filter: "MATQ +",
-    active: false,
-  },
-  {
-    key: ToggleType.HP,
-    label: "HP",
-    filter: "Máx. HP",
-    active: false,
-  },
-  {
-    key: ToggleType.SP,
-    label: "SP",
-    filter: "Máx. SP",
-    active: false,
-  },
-  {
-    key: ToggleType.HP_REGEN,
-    label: "HP Regen.",
-    filter: "Recuperação de HP",
-    active: false,
-  },
-  {
-    key: ToggleType.SP_REGEN,
-    label: "SP Regen.",
-    filter: "Recuperação de SP",
-    active: false,
-  },
-  {
-    key: ToggleType.CURA,
-    label: "Cura",
-    filter: "Aumenta a Cura de Habilidades",
-    active: false,
-  },
+export interface BonusFilter {
+  type: string;
+  checked: boolean;
+}
 
-  {
-    key: ToggleType.DEF,
-    label: "DEF",
-    filter: "DEF +",
-    active: false,
-  },
-  {
-    key: ToggleType.MDEF,
-    label: "DEFM",
-    filter: "DEFM +",
-    active: false,
-  },
-  {
-    key: ToggleType.CRIT,
-    label: "Crítico",
-    filter: "Taxa de Ataques Críticos",
-    active: false,
-  },
-  {
-    key: ToggleType.ASPD,
-    label: "Velocidade de Ataque",
-    filter: "Velocidade de Ataque",
-    active: false,
-  },
+export interface BonusFilterOptions {
+  upon: Upon;
+  checked: boolean;
+}
 
-  {
-    key: ToggleType.FOR,
-    label: "FOR",
-    filter: "FOR +",
-    active: false,
-  },
-  {
-    key: ToggleType.VIT,
-    label: "VIT",
-    filter: "VIT +",
-    active: false,
-  },
-  {
-    key: ToggleType.AGI,
-    label: "AGI",
-    filter: "AGI +",
-    active: false,
-  },
-  {
-    key: ToggleType.INT,
-    label: "INT",
-    filter: "INT +",
-    active: false,
-  },
-  {
-    key: ToggleType.DES,
-    label: "DES",
-    filter: "DES +",
-    active: false,
-  },
-  {
-    key: ToggleType.SOR,
-    label: "SOR",
-    filter: "SOR +",
-    active: false,
-  },
-  {
-    key: ToggleType.CONJ_DELAY,
-    label: "Reduz Pós-Conjuração",
-    filter: "Reduz o tempo do atraso",
-    active: false,
-  },
-  {
-    key: ToggleType.DANO_DIST,
-    label: "Dano a Distância",
-    filter: "Aumenta o ATK a distância",
-    active: false,
-  },
-  {
-    key: ToggleType.CONJ_TIME,
-    label: "Redução de Lançamento",
-    filter: "Reduz o tempo de lançamento",
-    active: false,
-  },
+export interface BonusFilterWithUpon {
+  type: string;
+  options: BonusFilterOptions[];
+}
 
-  {
-    key: ToggleType.INDESTRUCT,
-    label: "Indestrutível",
-    filter: "Indestrutível em batalha",
-    active: false,
-  },
-];
-
-const defaultSelectFilters: SelectFilter[] = [
-  {
-    key: SelectType.ATK_RACE,
-    selected: false,
-    value: "",
-  },
-  {
-    key: SelectType.ATK_ELEMENT,
-    selected: false,
-    value: "",
-  },
-  {
-    key: SelectType.IGNORE_DEF_RACE,
-    selected: false,
-    value: "",
-  },
-  {
-    key: SelectType.IGNORE_DEFM_RACE,
-    selected: false,
-    value: "",
-  },
-  {
-    key: SelectType.DEF_RACE,
-    selected: false,
-    value: "",
-  },
-  {
-    key: SelectType.DEF_ELEMENT,
-    selected: false,
-    value: "",
-  },
-];
+export interface SortBy {
+  type: string;
+  isAsc: boolean;
+}
 
 export default function Template() {
-  const [data, setData] = useState<SearchData | null>(null);
-  const [dataFiltered, setDataFiltered] = useState<SearchData | null>(null);
-  const [searchTerm, setSearchTerm] = useState<string>("");
-  const [filters, setFilters] = useState<ToggleFilter[]>(defaultToggleFilters);
-  const [selects, setSelects] = useState<SelectFilter[]>(defaultSelectFilters);
+  const [data, setData] = useState<SearchData>(null);
+  const [dataFiltered, setDataFiltered] = useState<SearchData>(null);
+  const [isFetching, setIsFetching] = useState<boolean>(false);
+  const [bonusFilters, setFilters] = useState<BonusFilter[]>([]);
+  const [bonusFiltersWithUpon, setFiltersWithUpon] = useState<
+    BonusFilterWithUpon[]
+  >([]);
+  const [sortBy, setSortBy] = useState<SortBy>({ type: "price", isAsc: true });
+  const searchRef = useRef<HTMLInputElement>();
 
-  function handleSubmit(value: string) {
-    setSearchTerm(value.trim());
-  }
+  const handleOnSearch = throttle(
+    async (value: string) => {
+      const sanitized = value.trim();
+      if (!sanitized) return;
+      searchRef.current.value = sanitized.replace(/^(\+[0-9]+)/, "");
+      setIsFetching(true);
+      const data = await getItems(value);
 
-  function handleFilterChange(key: ToggleType) {
-    setFilters(
-      filters.map((filter) =>
-        filter.key === key ? { ...filter, active: !filter.active } : filter
-      )
-    );
-  }
+      if (!data) return;
 
-  function handleSelectChange(key: SelectType, value: PropertyType) {
-    const currentSelected = selects.find((select) => select.key === key).value;
-    setSelects(
-      selects.map((select) =>
-        select.key === key
-          ? {
-              key,
-              selected: currentSelected !== value,
-              value: currentSelected === value ? "" : value,
-            }
-          : select
-      )
-    );
-  }
+      console.dir(data);
 
-  function handleClearFilters() {
-    setSelects(defaultSelectFilters);
-    setFilters(defaultToggleFilters);
-  }
+      setData({
+        ...data,
+        results: data.results.sort((a, b) => a.item.price - b.item.price),
+      });
 
-  // Check if results has some bonuses
-  const hasBonus = useMemo(
-    () => data?.results.some((result) => result.item.options.length > 0),
-    [dataFiltered]
+      setIsFetching(false);
+    },
+    2000,
+    { leading: true, trailing: false }
   );
 
-  // Filtering
-  useEffect(() => {
-    if (data) {
-      const filteredByToggles = data.results.filter((result) => {
-        return filters
-          .filter((filter) => filter.active)
-          .map((filter) => filter.filter)
-          .every((value) =>
-            result.item.options.some((bonus) => bonus.startsWith(value))
-          );
-      });
+  function handleBonusFilterToggle(filter: BonusFilter) {
+    setFilters(
+      bonusFilters.map((f) =>
+        f.type === filter.type ? { type: f.type, checked: !f.checked } : f
+      )
+    );
+  }
 
-      const filtered = filteredByToggles.filter((result) => {
-        return selects
-          .filter((select) => select.selected)
-          .map((select) =>
-            getFilterTermForSelectedType(
-              select.key,
-              select.value as PropertyType
-            )
+  function handleBonusFilterWithUponToggle(filter: string, option: string) {
+    setFiltersWithUpon(
+      bonusFiltersWithUpon.map((bonus) =>
+        bonus.type === filter
+          ? {
+              type: bonus.type,
+              options: bonus.options.map((opt) =>
+                opt.upon === option
+                  ? { ...opt, checked: !opt.checked }
+                  : { ...opt, checked: false }
+              ),
+            }
+          : bonus
+      )
+    );
+  }
+
+  function handleFiltersReset() {
+    setFilters(bonusFilters.map((bonus) => ({ ...bonus, checked: false })));
+    setFiltersWithUpon(
+      bonusFiltersWithUpon.map((bonus) => ({
+        ...bonus,
+        options: bonus.options.map((option) => ({
+          upon: option.upon,
+          checked: false,
+        })),
+      }))
+    );
+  }
+
+  function handleSortChange(type: string) {
+    const isAsc = sortBy.type === type ? !sortBy.isAsc : true;
+    setSortBy({ type, isAsc });
+  }
+
+  const hasFilters = useMemo(() => {
+    return !!bonusFilters.length || !!bonusFiltersWithUpon.length;
+  }, [bonusFilters, bonusFiltersWithUpon]);
+
+  const hasBonus = useMemo(
+    () => data?.results.some((result) => result.item.bonus.length > 0),
+    [data]
+  );
+
+  useEffect(() => {
+    if (!data) return;
+    const filters = getFiltersFromDataResult(data);
+
+    setFiltersWithUpon(
+      filters
+        .filter((bonus) => bonus?.upon)
+        .map((bonus) => ({
+          type: bonus.type,
+          options: bonus.upon.map((upon: string) => ({
+            upon,
+            checked: false,
+          })),
+        }))
+    );
+    setFilters(
+      filters
+        .filter((bonus) => !bonus?.upon)
+        .map((bonus) => ({ type: bonus.type, checked: false }))
+    );
+  }, [data]);
+
+  // Filter data
+  useEffect(() => {
+    if (!hasFilters) {
+      setDataFiltered(data);
+      return;
+    }
+
+    const filtered = data.results.filter((result) =>
+      bonusFilters
+        .filter((filter) => filter.checked)
+        .map((filter) => filter.type)
+        .every((filter) =>
+          result.item.bonus.some((bonus) => bonus.type === filter)
+        )
+    );
+
+    const final = filtered.filter((result) =>
+      bonusFiltersWithUpon
+        .filter((filter) => filter.options.find((opt) => opt.checked))
+        .every((filter) =>
+          result.item.bonus.some(
+            (bonus) =>
+              bonus.type === filter.type &&
+              filter.options.some((f) => f.upon === bonus.upon && f.checked)
           )
-          .every((value) =>
-            result.item.options.some((bonus) => bonus.includes(value))
-          );
-      });
+        )
+    );
 
-      const sortedByPrice = filtered.sort(
-        (resultA, resultB) => resultA.item.price - resultB.item.price
-      );
+    setDataFiltered({
+      ...data,
+      total: final.length,
+      results: final,
+    });
+  }, [bonusFilters, bonusFiltersWithUpon]);
 
-      setDataFiltered({
-        ...data,
-        total: sortedByPrice.length,
-        results: sortedByPrice,
-      });
-    }
-  }, [data, filters, selects]);
-
-  // Request when query.name change
   useEffect(() => {
-    async function doRequest() {
-      const items = await getItems(searchTerm);
-      setData(items || null);
+    if (!dataFiltered) return;
+
+    if (sortBy.type === "price") {
+      setDataFiltered({
+        ...dataFiltered,
+        results: dataFiltered.results.sort((a, b) =>
+          sortBy.isAsc
+            ? a.item.price - b.item.price
+            : b.item.price - a.item.price
+        ),
+      });
+      return;
     }
 
-    if (searchTerm.length > 0) {
-      doRequest();
-    }
-  }, [searchTerm]);
+    const sorted = dataFiltered.results.sort((resA, resB) => {
+      const a = resA.item.bonus.find((bonus) => bonus.type === sortBy.type)
+        ?.value;
+      const b = resB.item.bonus.find((bonus) => bonus.type === sortBy.type)
+        ?.value;
+
+      return sortBy.isAsc ? a - b : b - a;
+    });
+
+    setDataFiltered({ ...dataFiltered, results: sorted });
+  }, [sortBy]);
 
   return (
-    <Flex h="full" w="full">
+    <Flex w="full" justifyContent="center" bgColor="gray.100">
       <Head>
         <title>Ragnawave Market</title>
         <link rel="icon" href="/logo.png" />
       </Head>
 
-      <Flex w={400} h="100vh" bgColor="blackAlpha.100" overflowX="scroll">
-        <Filter
-          filters={filters}
-          selects={selects}
-          handleFilterChange={handleFilterChange}
-          handleSelectChange={handleSelectChange}
-          clearFilters={handleClearFilters}
+      <Flex as="main" w={["full", 1200]}>
+        <Filters
+          hasFilters={hasFilters}
+          filters={bonusFilters}
+          filtersWithUpon={bonusFiltersWithUpon}
+          onFilterCheck={handleBonusFilterToggle}
+          onFilterWithUponCheck={handleBonusFilterWithUponToggle}
+          onReset={handleFiltersReset}
         />
-      </Flex>
 
-      <Box w="full" h="100vh" overflowX="scroll" paddingX="8">
-        <Stack marginY="4" spacing="4">
-          <Heading>Pesquisar</Heading>
-          <Search handleSubmit={handleSubmit} />
-        </Stack>
-        <Box>
-          {!!!dataFiltered ? (
-            <Welcome />
-          ) : !!dataFiltered?.results.length ? (
-            <Results data={dataFiltered} hasBonus={hasBonus} />
-          ) : (
-            <ItemNotFound />
-          )}
-        </Box>
-      </Box>
+        <Flex direction="column" w="full" paddingX="8" h="100vh">
+          <Flex minH="16" alignItems="center">
+            <Search
+              inputRef={searchRef}
+              onSubmit={handleOnSearch}
+              isFetching={isFetching}
+            />
+          </Flex>
+          <Flex mb="4">
+            <Results
+              data={dataFiltered}
+              hasBonus={hasBonus}
+              onSortChange={handleSortChange}
+              sortBy={sortBy}
+              onItemClick={(itemName) => handleOnSearch(itemName)}
+            />
+          </Flex>
+        </Flex>
+      </Flex>
     </Flex>
   );
 }

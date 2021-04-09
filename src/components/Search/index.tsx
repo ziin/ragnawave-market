@@ -1,23 +1,22 @@
 import { Button } from "@chakra-ui/button";
-import { FormControl } from "@chakra-ui/form-control";
 import { Input, InputGroup, InputLeftElement } from "@chakra-ui/input";
 import { Flex } from "@chakra-ui/layout";
-import { FormEvent, useRef } from "react";
+import { FormEvent, MutableRefObject } from "react";
 import { BiSearch } from "react-icons/bi";
 
 interface Props {
-  handleSubmit(value: string): void;
+  onSubmit(value: string): void;
+  isFetching: boolean;
+  inputRef: MutableRefObject<HTMLInputElement>;
 }
-export default function Search({ handleSubmit }: Props) {
-  const searchInput = useRef<HTMLInputElement>();
-
-  function onSubmit(e: FormEvent<HTMLFormElement>) {
+export default function Search({ onSubmit, isFetching, inputRef }: Props) {
+  function handleOnSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    handleSubmit(searchInput.current.value);
+    onSubmit(inputRef.current.value);
   }
 
   return (
-    <form onSubmit={onSubmit}>
+    <form onSubmit={handleOnSubmit}>
       <Flex>
         <InputGroup>
           <InputLeftElement
@@ -29,9 +28,17 @@ export default function Search({ handleSubmit }: Props) {
             type="text"
             name="searchTerm"
             placeholder="Nome ou ID"
-            ref={searchInput}
+            bgColor="whiteAlpha.700"
+            ref={inputRef}
           />
-          <Button variant="solid" colorScheme="blue" type="submit" ml="2">
+          <Button
+            isLoading={isFetching}
+            variant="solid"
+            colorScheme="linkedin"
+            type="submit"
+            w="32"
+            ml="2"
+          >
             Pesquisar
           </Button>
         </InputGroup>

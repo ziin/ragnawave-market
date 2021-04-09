@@ -10,10 +10,11 @@ const api = axios.create({
 });
 
 export async function getItemsByName(
-  name: string
+  name: string,
+  page: number
 ): Promise<ResponseData | undefined> {
   try {
-    const { data } = await api.get("", { params: { name } });
+    const { data } = await api.get("", { params: { name, page } });
     return data;
   } catch (error) {
     console.log(error);
@@ -21,10 +22,11 @@ export async function getItemsByName(
 }
 
 export async function getItemsById(
-  id: string
+  id: string,
+  page: number
 ): Promise<ResponseData | undefined> {
   try {
-    const { data } = await api.get("", { params: { nameid: id } });
+    const { data } = await api.get("", { params: { nameid: id, page } });
     return data;
   } catch (error) {
     console.log(error);
