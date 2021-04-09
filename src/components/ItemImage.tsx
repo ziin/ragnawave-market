@@ -14,7 +14,7 @@ export default function ItemImage({ id, alt, size = 24, isCard }: Props) {
     () => (
       <Box mr="1">
         <Img
-          src={`http://www.ragnawave.com.br/dist/db/items/${
+          src={`https://www.ragnawave.com.br/dist/db/items/${
             isCard ? 4297 : id
           }.png`}
           alt={alt}
