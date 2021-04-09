@@ -44,12 +44,12 @@ export default function Template() {
       const sanitized = value.trim();
       if (!sanitized) return;
       searchRef.current.value = sanitized.replace(/^(\+[0-9]+)/, "");
+      setSortBy({ type: "price", isAsc: true });
+
       setIsFetching(true);
       const data = await getItems(value);
 
       if (!data) return;
-
-      console.dir(data);
 
       setData({
         ...data,
