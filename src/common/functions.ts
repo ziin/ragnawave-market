@@ -67,7 +67,7 @@ export function filterItemsFromVendorShopById(
 
 function getBonusType(str: string): BonusType {
   const bonusType = Object.keys(BonusType).find((key) =>
-    str.includes(mapBonusTypes.get(BonusType[key]))
+    str.match(new RegExp(`\\b(${mapBonusTypes.get(BonusType[key])})`, "i"))
   );
   return BonusType[bonusType];
 }
