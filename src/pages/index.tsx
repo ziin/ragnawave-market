@@ -192,7 +192,11 @@ export default function Template() {
       const b = resB.item.bonus.find((bonus) => bonus.type === sortBy.type)
         ?.value;
 
-      return sortBy.isAsc ? a - b : b - a;
+      if (!b || !a) {
+        return -9999;
+      }
+
+      return sortBy.isAsc ? b - a : a - b;
     });
 
     setDataFiltered({ ...dataFiltered, results: sorted });
