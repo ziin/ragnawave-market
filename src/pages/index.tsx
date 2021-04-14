@@ -2,11 +2,12 @@ import Head from "next/head";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import throttle from "lodash.throttle";
 import { SearchData, Upon } from "@common/types";
-import { Flex } from "@chakra-ui/layout";
+import { Box, Flex, Heading, Link, Text } from "@chakra-ui/layout";
 import Search from "@components/Search";
 import { getItems, getFiltersFromDataResult } from "../common/functions";
 import Filters from "../components/Filter";
 import Results from "../components/Results";
+import { Image } from "@chakra-ui/image";
 
 export interface BonusFilter {
   type: string;
@@ -209,6 +210,12 @@ export default function Template() {
         <link rel="icon" href="/logo.png" />
       </Head>
 
+      <Box position="fixed" bottom="4" left="4">
+        <Link href="ziin" color="gray.500" fontSize="small">
+          ziindev
+        </Link>
+      </Box>
+
       <Flex as="main" w={["full", 1200]}>
         <Filters
           hasFilters={hasFilters}
@@ -220,7 +227,26 @@ export default function Template() {
         />
 
         <Flex direction="column" w="full" paddingX="8" h="100vh">
-          <Flex minH="16" alignItems="center">
+          <Flex minH="16" alignItems="center" userSelect="none">
+            <Flex mr="2" direction="column" alignItems="flex-end">
+              <Text
+                size="sm"
+                fontWeight="semibold"
+                color="blue.500"
+                lineHeight="1"
+              >
+                RAGNAWAVE
+              </Text>
+              <Text
+                fontSize="x-small"
+                textTransform="uppercase"
+                fontWeight="semibold"
+                letterSpacing="2px"
+                color="gray.500"
+              >
+                Mercado
+              </Text>
+            </Flex>
             <Search
               inputRef={searchRef}
               onSubmit={handleOnSearch}
