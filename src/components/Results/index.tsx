@@ -6,22 +6,27 @@ import { SearchData } from "@common/types";
 import ItemImage from "../ItemImage";
 import NoData from "./NoData";
 import NoResults from "./NoResults";
-import { SortBy } from "../../pages";
+import { SortBy } from "@pages";
+import { useSearchContext } from "@contexts/searchContext";
 
 interface Props {
   data: SearchData;
   hasBonus: boolean;
   onSortChange(type: string): void;
   sortBy: SortBy;
-  onItemClick(name: string): void;
 }
 export default function Results({
   data,
   hasBonus,
   onSortChange,
   sortBy,
-  onItemClick,
 }: Props) {
+  const { updateValue } = useSearchContext();
+
+  function handleItemClick(value: string) {
+    updateValue(value.replace(/^(\+[0-9]+)/, "").trim());
+  }
+
   if (!data) {
     return <NoData />;
   }
@@ -64,7 +69,7 @@ export default function Results({
                   />
 
                   <Text
-                    onClick={() => onItemClick(item.name)}
+                    onClick={() => handleItemClick(item.name)}
                     cursor="pointer"
                     _hover={{ fontWeight: "semibold" }}
                   >

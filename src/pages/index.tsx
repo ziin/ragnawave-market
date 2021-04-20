@@ -1,12 +1,13 @@
 import Head from "next/head";
-import React, { useEffect, useMemo, useRef, useState } from "react";
-import throttle from "lodash.throttle";
+import React, { useEffect, useMemo, useState } from "react";
 import { SearchData, Upon } from "@common/types";
 import { Flex, Text } from "@chakra-ui/layout";
 import Search from "@components/Search";
 import { getItems, getFiltersFromDataResult } from "../common/functions";
 import Filters from "../components/Filter";
 import Results from "../components/Results";
+import { useSearchContext } from "@contexts/searchContext";
+import History from "@components/History";
 
 export interface BonusFilter {
   type: string;
@@ -37,30 +38,7 @@ export default function Template() {
     BonusFilterWithUpon[]
   >([]);
   const [sortBy, setSortBy] = useState<SortBy>({ type: "price", isAsc: true });
-  const searchRef = useRef<HTMLInputElement>();
-
-  const handleOnSearch = throttle(
-    async (value: string) => {
-      const sanitized = value.trim();
-      if (!sanitized) return;
-      searchRef.current.value = sanitized.replace(/^(\+[0-9]+)/, "");
-      setSortBy({ type: "price", isAsc: true });
-
-      setIsFetching(true);
-      const data = await getItems(value);
-
-      if (!data) return;
-
-      setData({
-        ...data,
-        results: data.results.sort((a, b) => a.item.price - b.item.price),
-      });
-
-      setIsFetching(false);
-    },
-    2000,
-    { leading: true, trailing: false }
-  );
+  const { value: searchInput } = useSearchContext();
 
   function handleBonusFilterToggle(filter: BonusFilter) {
     setFilters(
@@ -113,6 +91,28 @@ export default function Template() {
     () => data?.results.some((result) => result.item.bonus.length > 0),
     [data]
   );
+
+  useEffect(() => {
+    async function doRequest() {
+      setSortBy({ type: "price", isAsc: true });
+
+      setIsFetching(true);
+      const data = await getItems(searchInput);
+
+      if (!data) return;
+
+      setData({
+        ...data,
+        results: data.results.sort((a, b) => a.item.price - b.item.price),
+      });
+
+      setIsFetching(false);
+    }
+
+    if (searchInput) {
+      doRequest();
+    }
+  }, [searchInput]);
 
   useEffect(() => {
     if (!data) return;
@@ -209,7 +209,7 @@ export default function Template() {
         <link rel="icon" href="/logo.png" />
       </Head>
 
-      <Flex as="main" w={["full", 1200]}>
+      <Flex as="main" w={["full"]}>
         <Filters
           hasFilters={hasFilters}
           filters={bonusFilters}
@@ -240,11 +240,7 @@ export default function Template() {
                 Mercado
               </Text>
             </Flex>
-            <Search
-              inputRef={searchRef}
-              onSubmit={handleOnSearch}
-              isFetching={isFetching}
-            />
+            <Search isFetching={isFetching} />
           </Flex>
           <Flex mb="4">
             <Results
@@ -252,8 +248,9 @@ export default function Template() {
               hasBonus={hasBonus}
               onSortChange={handleSortChange}
               sortBy={sortBy}
-              onItemClick={(itemName) => handleOnSearch(itemName)}
             />
+
+            <History />
           </Flex>
         </Flex>
       </Flex>
