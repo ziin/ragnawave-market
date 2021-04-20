@@ -2,12 +2,11 @@ import Head from "next/head";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import throttle from "lodash.throttle";
 import { SearchData, Upon } from "@common/types";
-import { Box, Flex, Heading, Link, Text } from "@chakra-ui/layout";
+import { Flex, Text } from "@chakra-ui/layout";
 import Search from "@components/Search";
 import { getItems, getFiltersFromDataResult } from "../common/functions";
 import Filters from "../components/Filter";
 import Results from "../components/Results";
-import { Image } from "@chakra-ui/image";
 
 export interface BonusFilter {
   type: string;
@@ -209,12 +208,6 @@ export default function Template() {
         <title>Ragnawave Market</title>
         <link rel="icon" href="/logo.png" />
       </Head>
-
-      <Box position="fixed" bottom="4" left="4">
-        <Link href="ziin" color="gray.500" fontSize="small">
-          ziindev
-        </Link>
-      </Box>
 
       <Flex as="main" w={["full", 1200]}>
         <Filters
