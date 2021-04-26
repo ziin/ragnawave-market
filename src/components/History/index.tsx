@@ -1,30 +1,34 @@
 import { Flex, List, Text, ListItem } from "@chakra-ui/layout";
-import { useSearchContext } from "../../contexts/searchContext";
+import { useSearchContext } from "@contexts/searchValue";
 
-export default function History() {
-  const { value, history, updateValue } = useSearchContext();
-
+interface Props {
+  onHistoryPress(value: string): void;
+}
+export default function History({ onHistoryPress }: Props) {
+  const { searchValue, searchHistory } = useSearchContext();
   return (
-    <Flex w="200px" direction="column" alignItems="flex-end">
+    <Flex direction="column" ml="2" alignItems="flex-end">
       <Text
         fontWeight="semibold"
-        fontSize="sm"
-        color="gray.700"
+        fontSize="small"
+        color="gray.600"
         letterSpacing="2px"
       >
         Histórico
       </Text>
-      <List spacing={0.2}>
-        {history.map((hist) => (
+      <List spacing={-1}>
+        {searchHistory.map((hist) => (
           <ListItem
+            maxW="200px"
             key={hist}
             cursor="pointer"
-            onClick={() => updateValue(hist)}
+            onClick={() => onHistoryPress(hist)}
             textAlign="end"
-            fontSize="sm"
-            color={value === hist ? "blue.400" : "gray.900"}
-            fontWeight={value === hist ? "semibold" : "gray.900"}
-            letterSpacing="1px"
+            fontSize="small"
+            color={searchValue === hist ? "blue.400" : "gray.900"}
+            fontWeight={searchValue === hist ? "semibold" : "gray.900"}
+            letterSpacing="0.4px"
+            isTruncated
           >
             {hist}
           </ListItem>

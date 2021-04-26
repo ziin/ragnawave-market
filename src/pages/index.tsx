@@ -6,8 +6,9 @@ import Search from "@components/Search";
 import { getItems, getFiltersFromDataResult } from "../common/functions";
 import Filters from "../components/Filter";
 import Results from "../components/Results";
-import { useSearchContext } from "@contexts/searchContext";
 import History from "@components/History";
+import { throttle } from "lodash";
+import { useSearchContext } from "../contexts/searchValue";
 
 export interface BonusFilter {
   type: string;
@@ -38,7 +39,24 @@ export default function Template() {
     BonusFilterWithUpon[]
   >([]);
   const [sortBy, setSortBy] = useState<SortBy>({ type: "price", isAsc: true });
-  const { value: searchInput } = useSearchContext();
+  const { updateSearchHistory } = useSearchContext();
+
+  const handleOnSearch = throttle(
+    async (value: string) => {
+      setSortBy({ type: "price", isAsc: true });
+      setIsFetching(true);
+      const data = await getItems(value);
+      if (!data) return;
+      setData({
+        ...data,
+        results: data.results.sort((a, b) => a.item.price - b.item.price),
+      });
+      setIsFetching(false);
+      updateSearchHistory(value);
+    },
+    2000,
+    { trailing: false, leading: true }
+  );
 
   function handleBonusFilterToggle(filter: BonusFilter) {
     setFilters(
@@ -91,28 +109,6 @@ export default function Template() {
     () => data?.results.some((result) => result.item.bonus.length > 0),
     [data]
   );
-
-  useEffect(() => {
-    async function doRequest() {
-      setSortBy({ type: "price", isAsc: true });
-
-      setIsFetching(true);
-      const data = await getItems(searchInput);
-
-      if (!data) return;
-
-      setData({
-        ...data,
-        results: data.results.sort((a, b) => a.item.price - b.item.price),
-      });
-
-      setIsFetching(false);
-    }
-
-    if (searchInput) {
-      doRequest();
-    }
-  }, [searchInput]);
 
   useEffect(() => {
     if (!data) return;
@@ -219,7 +215,7 @@ export default function Template() {
           onReset={handleFiltersReset}
         />
 
-        <Flex direction="column" w="full" paddingX="8" h="100vh">
+        <Flex direction="column" w="full" pl="8" pr="2" h="100vh">
           <Flex minH="16" alignItems="center" userSelect="none">
             <Flex mr="2" direction="column" alignItems="flex-end">
               <Text
@@ -240,7 +236,7 @@ export default function Template() {
                 Mercado
               </Text>
             </Flex>
-            <Search isFetching={isFetching} />
+            <Search isFetching={isFetching} onSubmit={handleOnSearch} />
           </Flex>
           <Flex mb="4">
             <Results
@@ -248,9 +244,10 @@ export default function Template() {
               hasBonus={hasBonus}
               onSortChange={handleSortChange}
               sortBy={sortBy}
+              onItemPress={(value) => handleOnSearch(value)}
             />
 
-            <History />
+            <History onHistoryPress={(value) => handleOnSearch(value)} />
           </Flex>
         </Flex>
       </Flex>

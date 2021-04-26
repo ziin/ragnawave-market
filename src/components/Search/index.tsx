@@ -3,29 +3,26 @@ import { Input, InputGroup, InputLeftElement } from "@chakra-ui/input";
 import { Flex } from "@chakra-ui/layout";
 import { FormEvent, useEffect, useRef } from "react";
 import { BiSearch } from "react-icons/bi";
-import { useSearchContext } from "@contexts/searchContext";
-import throttle from "lodash.throttle";
+import { useSearchContext } from "@contexts/searchValue";
 
 interface Props {
   isFetching: boolean;
+  onSubmit(value: string): void;
 }
-export default function Search({ isFetching }: Props) {
+export default function Search({ isFetching, onSubmit }: Props) {
+  const { searchValue, updateSearchValue } = useSearchContext();
   const inputRef = useRef<HTMLInputElement>();
-  const { updateValue, value } = useSearchContext();
 
-  const handleOnSubmit = throttle(
-    (e: FormEvent<HTMLFormElement>) => {
-      e.preventDefault();
-      const sanitized = inputRef.current.value.trim();
-      updateValue(sanitized);
-    },
-    2000,
-    { trailing: false, leading: true }
-  );
+  const handleOnSubmit = (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const sanitized = inputRef.current.value.trim();
+    onSubmit(sanitized);
+    updateSearchValue(sanitized);
+  };
 
   useEffect(() => {
-    inputRef.current.value = value;
-  }, [value]);
+    inputRef.current.value = searchValue;
+  }, [searchValue]);
 
   return (
     <form onSubmit={handleOnSubmit}>

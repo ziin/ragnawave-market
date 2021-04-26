@@ -7,24 +7,24 @@ import ItemImage from "../ItemImage";
 import NoData from "./NoData";
 import NoResults from "./NoResults";
 import { SortBy } from "@pages";
-import { useSearchContext } from "@contexts/searchContext";
 
 interface Props {
   data: SearchData;
   hasBonus: boolean;
   onSortChange(type: string): void;
   sortBy: SortBy;
+  onItemPress(value: string): void;
 }
 export default function Results({
   data,
   hasBonus,
   onSortChange,
   sortBy,
+  onItemPress,
 }: Props) {
-  const { updateValue } = useSearchContext();
-
   function handleItemClick(value: string) {
-    updateValue(value.replace(/^(\+[0-9]+)/, "").trim());
+    const formated = value.replace(/^(\+[0-9]+)/, "").trim();
+    onItemPress(formated);
   }
 
   if (!data) {
